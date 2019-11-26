@@ -1,0 +1,65 @@
+class LevelPick {
+
+    function Array getSeed() {
+
+        var int seed;
+        var int key;
+		var int difficulty;
+		var Array exitValue;
+		var int lastKey;
+		
+		let exitValue = Array.new(2);
+
+        let seed = 0;
+        let key = 0;
+
+		do Output.moveCursor(0, 0);
+        do Output.printString("Pick difficulty and press SPACE");
+        do Output.println();
+		do Output.printString("Difficulty: ");
+		do Output.printInt(1);
+		let difficulty = 1;
+		
+
+        while(~(key = 32)) {
+			
+			// tu ubacit biranje lvla
+            let seed = seed + 1;
+            if( seed = 32767 ) {
+                let seed = 0;
+            }
+            let key = Keyboard.keyPressed();
+			
+			if(key = 132 & ~(lastKey = 132)){
+				if(difficulty < 4){
+					let difficulty = difficulty +1;
+					do Output.backSpace();
+					do Output.printInt(difficulty);
+				}
+			}
+			
+			if(key = 130 & ~(lastKey = 130)){
+				if(difficulty > 1){
+					let difficulty = difficulty -1;
+					do Output.backSpace();
+					do Output.printInt(difficulty);
+				}
+			}
+			
+			if(~( key = lastKey)){
+				let lastKey = key;
+			}
+        }
+		
+		let exitValue[0] = seed;
+		let exitValue[1] = difficulty;
+		
+		do Sys.wait(1000);
+
+        do Screen.clearScreen();
+
+        return exitValue;
+
+    }
+
+}

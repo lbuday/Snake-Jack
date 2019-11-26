@@ -1,0 +1,76 @@
+class Main {
+
+    function void main() {
+		var boolean exit;
+		var int prevDir;
+		var int key;
+		var Snake snake;
+		
+		while(true){
+			let prevDir = 132;
+			let snake = Snake.new();
+			
+			let exit = false;
+			while(~exit) {
+			
+				let key = Keyboard.keyPressed();
+				if( key = 0 ) {
+					let key = prevDir;
+				}
+				if( key = 130 ) {
+					if( prevDir = 132 ) {
+						do snake.nextMove(1,0);
+					}else{
+						do snake.nextMove(-1,0);
+						let prevDir = 130;
+					}
+				}
+				if( key = 131 ) {
+					if( prevDir = 133 ) {
+						do snake.nextMove(0,1);
+					}else {
+						do snake.nextMove(0,-1);
+						let prevDir = 131;
+					}
+				}
+				if( key = 132 ) { 
+					if( prevDir = 130 ) {
+						do snake.nextMove(-1,0);
+					}else {
+						do snake.nextMove(1,0);
+						let prevDir = 132;
+					}
+				}
+				if( key = 133 ) {
+					if( prevDir = 131 ) {
+						do snake.nextMove(0,-1);
+					}else {
+						do snake.nextMove(0,1);
+						let prevDir = 133;
+					}
+				}
+			
+				let exit = snake.Move();			
+			
+			}
+			
+			do Output.moveCursor(0, 0);
+			do Screen.clearScreen();
+			do Output.printString("Final score: ");
+			do Output.printInt(snake.getScore());
+			do Output.println();
+			do Output.printString("Press ESC to play again");
+			
+			while(~(key=140)){		
+				let key = Keyboard.keyPressed();
+			}
+			
+			do snake.dispose();
+			do Screen.clearScreen();
+		
+		}
+		
+        return;
+    }
+
+}

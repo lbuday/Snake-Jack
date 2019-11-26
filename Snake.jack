@@ -1,0 +1,254 @@
+class Snake {
+
+	field Array snakeX, snakeY;
+    field int snakeSize;
+	field int snakePos;
+	field int score;
+	
+	field int nextX, nextY;
+	
+	field Array grid;
+	field int sizeX, sizeY;
+	
+	field int foodX, foodY;
+	field int difficulty;
+	field int speed;
+
+    constructor Snake new() {
+		
+        var int i;
+		var int curX, curY;
+        var Array xGrid;
+		var Array seedAndDif;
+		
+		let seedAndDif = LevelPick.getSeed();
+		do Random.setSeed(seedAndDif[0]);
+		let difficulty = seedAndDif[1];
+		let speed = 110 - (12*difficulty);
+		
+		let snakeSize = 4;
+		let snakePos = 3;
+		let nextX = 0;
+		let nextY = 0;
+		let score = -difficulty;
+		
+		let sizeX = 15 + (difficulty*5) ;
+        let sizeY = 13 + (difficulty*2) + difficulty;
+		
+		let grid = Array.new(sizeX);
+        let curX = 0;
+
+        while( curX < sizeX ) {
+            let xGrid = Array.new(sizeY);
+            let curY = 0;
+            while( curY < sizeY ) {
+                let xGrid[curY] = false;
+                let curY = curY + 1;
+            }
+            let grid[curX] = xGrid;
+            let curX = curX + 1;
+        }
+		
+		do Screen.setColor(true);
+        do Screen.drawRectangle(0, (sizeY*10)+1, 375, 255);
+		do Screen.drawRectangle((sizeX*10)+1, 0, 375, 255);
+
+        let snakeX = Array.new(snakeSize);
+        let snakeY = Array.new(snakeSize);
+
+        let i = 0;
+        while( i < snakeSize ) {
+            let snakeX[i] = 5;
+			let snakeY[i] = 4 + i;
+			do drawSnakeBit(5,4+i);
+            let i = i + 1;
+        }
+		
+		do seedAndDif.dispose();
+		
+		do placeFood();
+		
+		do drawStatus();
+
+        return this;
+
+    }
+
+    method void dispose() {
+
+		var int curX;
+        var Array xGrid;
+		
+        let curX = 0;
+        while( curX < sizeX ) {
+            let xGrid = grid[curX];
+            do xGrid.dispose();
+            let curX = curX + 1;
+        }
+		
+		do snakeX.dispose();
+		do snakeY.dispose();
+		
+        do Memory.deAlloc(this);
+        return;
+
+    }
+	
+	method boolean Move(){
+		var int newSnakePos;		
+		
+		if( checkOccupied(nextX, nextY) ){
+			return true;
+			//do displayCrashed
+		}
+		
+		if( (foodX = nextX) & (foodY = nextY)){
+			do Grow();
+			do placeFood();
+			do drawStatus();
+			//do ScoreUp
+		}else{
+			let newSnakePos = (snakePos+1)-((snakePos+1)/snakeSize*snakeSize);
+			do clearSnakeBit( snakeX[newSnakePos], snakeY[newSnakePos] );
+			do drawSnakeBit ( nextX, nextY );
+			let snakeX[newSnakePos] = nextX;
+			let snakeY[newSnakePos] = nextY;
+			let snakePos = newSnakePos;
+		}
+		
+		//do NomNom
+		
+		do Sys.wait(speed);
+		return false;
+	}
+	
+    method void nextMove(int x, int y) {
+	
+        let nextX = snakeX[snakePos] + x;
+		let nextY = snakeY[snakePos] + y;
+	
+        return;
+	
+    }
+	
+	method void Grow(){
+		
+		var Array newSnakeX, newSnakeY;
+		var int i, curr;
+		
+		let newSnakeX = Array.new(snakeSize + 1);
+		let newSnakeY = Array.new(snakeSize + 1);
+		
+		let i = 0;
+		while(i<snakeSize){
+			let curr = (snakePos+1+i)-((snakePos+1+i)/snakeSize*snakeSize);
+			
+			let newSnakeX[i] = snakeX[curr] ;
+			let newSnakeY[i] = snakeY[curr] ;
+			
+			let i = i + 1;
+		}
+		
+		let newSnakeX[snakeSize] = nextX ;
+		let newSnakeY[snakeSize] = nextY ;
+		let snakeX = newSnakeX;
+		let snakeY = newSnakeY;
+		let snakePos = snakeSize;
+		let snakeSize = snakeSize + 1;
+		
+		do drawSnakeBit ( nextX, nextY );
+		
+		return;
+	}
+	
+	method void placeFood() {
+
+        var boolean found;
+        var int randX, randY;
+
+        let found = false;
+        while( ~found ) {
+            let randX = Random.randRange(sizeX);
+            let randY = Random.randRange(sizeY);
+            if( ~ checkOccupied(randX, randY) ) {
+                let found = true;
+            }
+
+        }
+        let foodX = randX;
+        let foodY = randY;
+		
+		do Screen.setColor(true);
+        do Screen.drawCircle((foodX*10)+5, (foodY*10)+5, 4);
+
+        return;
+
+    }
+	
+	method void drawStatus() {
+
+        var String tString;
+		
+		let score = score + difficulty;
+        do Output.moveCursor(1, 49);
+        let tString = "Difficulty: ";
+        do Output.printString(tString);
+        do tString.dispose();
+        do Output.printInt(difficulty);
+        do Output.moveCursor(3, 49);
+        let tString = "Score: ";
+        do Output.printString(tString);
+        do tString.dispose();
+        do Output.printInt(score);
+        do Output.moveCursor(21, 49);
+        let tString = "Size: ";
+        do Output.printString(tString);
+        do tString.dispose();
+        do Output.printInt(score/difficulty);
+
+        return;
+
+    }
+	
+	method boolean checkOccupied(int x, int y) {
+		var Array xGrid;
+
+		if( ( x < 0 ) | ( x = sizeX ) | ( y < 0 ) | ( y = sizeY ) ){
+			return true;
+		}
+        
+        let xGrid = grid[x];
+        if( xGrid[y] ) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+	
+	method void setOccupied(int x, int y, boolean occupied) {
+        var Array xGrid;
+		
+        let xGrid = grid[x];
+        let xGrid[y] = occupied;
+        return;
+    }
+
+	method void drawSnakeBit(int x, int y) {
+        do Screen.setColor(true);
+        do Screen.drawRectangle( x*10+1, y*10+1, (x*10)+9, (y*10)+9 );
+        do setOccupied(x, y, true);
+        return;
+    }
+	
+	method void clearSnakeBit(int x, int y) {
+        do Screen.setColor(false);
+        do Screen.drawRectangle( x*10, y*10, (x*10)+10, (y*10)+10 );
+        do setOccupied(x, y, false);
+        return;
+    }
+	
+	method int getScore(){
+		return score;
+	}
+}
